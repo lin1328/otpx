@@ -36,7 +36,7 @@
 //!     .unwrap()
 //!     .with_algorithm(Algorithm::Steam);
 //!
-//! let code = steam_totp.generate_at(57856320);
+//! let code = steam_totp.generate_hotp(57856320);
 //! println!("Steam : {}", code);
 //! assert_eq!(code, "R6Q5N");
 //! ```
@@ -71,6 +71,7 @@ type HmacSha512 = Hmac<Sha512>;
 ///
 /// Use SHA1 by default to ensure maximum compatibility
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Algorithm {
     /// HMAC-SHA-1 is the default algorithm for most OTP implementations
     #[default]
@@ -310,7 +311,7 @@ impl Totp {
     /// Returns an error when system time retrieval fails
     pub fn generate(&self) -> Result<String, Error> {
         let counter = self.current_counter()?;
-        Ok(self.generate_at(counter))
+        Ok(self.generate_hotp(counter))
     }
 
     /// Generate verification code using specified counter value
@@ -319,7 +320,7 @@ impl Totp {
     ///
     /// * `counter` - TOTP counter value, obtained through `time_counter_now` or custom
     #[must_use]
-    pub fn generate_at(&self, counter: u64) -> String {
+    pub fn generate_hotp(&self, counter: u64) -> String {
         let truncated = self.compute_hmac(counter);
 
         match self.algorithm {

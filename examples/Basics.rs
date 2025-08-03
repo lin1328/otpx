@@ -18,8 +18,8 @@ fn main() {
     let bytes = Totp::new_from_bytes(demo_bytes);
 
     let c = time_counter_now(30).unwrap();
-    let x = base32.generate_at(c);
-    let y = bytes.generate_at(c);
+    let x = base32.generate_hotp(c);
+    let y = bytes.generate_hotp(c);
 
     if x == y {
         println!("success  : {x}");
@@ -37,7 +37,7 @@ fn main() {
     }
 
     let hotp = Totp::new(demo_secret.clone()).unwrap();
-    println!("hotp dome: {}", hotp.generate_at(57_856_320));
+    println!("hotp dome: {}", hotp.generate_hotp(57_856_320));
 
     let custom_totp = Totp::new(demo_secret)
         .unwrap()
