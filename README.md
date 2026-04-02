@@ -3,13 +3,13 @@
 [![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> A Time-based One-Time Password (TOTP) Rust implementation library that follows RFC 6238, supporting multiple hash algorithms and Steam Guard compatibility.
+> A TOTP (RFC 6238) library in Rust, supporting multiple hash algorithms and Steam Guard compatibility. The core `generate_counter(counter)` method also serves as a low-level HOTP primitive for counter-based OTP generation.
 
 ## ✨ Features
 
 - **🔐 RFC Standard Compliant**: Follows RFC 6238 (TOTP) and RFC 4226 (HOTP)
 - **🛡️ Multiple Hash Algorithms**: Supports SHA1, SHA256, SHA512
-- **🎯 Flexible Configuration**: Supports 5-8 digit codes with custom time steps
+- **🎯 Flexible Configuration**: Supports 6–8 digit codes for standard OTP, 5-character codes for Steam Guard, with custom time steps
 - **🎮 Steam Compatible**: Supports Steam Guard format codes
 - **📱 Cross-Platform**: Supports all Rust target platforms
 
@@ -41,8 +41,8 @@ cargo run --example Basics
 
 ### 1. Key Management
 
-- **Minimum Length**: Use at least 16 Base32 characters (80 bits) for keys
-- **Recommended Length**: 26+ characters (128 bits), following RFC 4226 recommendations
+- **Minimum Length**: Use at least 16 Base32 characters (80 bits / 10 bytes) for keys
+- **Recommended Length**: 26+ Base32 characters (128 bits / 16 bytes), following RFC 4226 §4 R6
 - **Secure Storage**: Keys should be stored in secure locations, avoid hardcoding
 - **Access Control**: Restrict access permissions to keys
 
@@ -75,7 +75,7 @@ cargo run --example Basics
 A: Check if system time is synchronized and ensure the key is correct.
 
 **Q: Key length error?**
-A: Ensure Base32 key is at least 16 characters.
+A: Ensure Base32 key is at least 16 characters (80 bits). For production use, 26+ characters (128 bits) is recommended.
 
 **Q: Steam code format incorrect?**
 A: Use `Algorithm::Steam` and ensure the key is correct.

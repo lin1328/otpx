@@ -1,11 +1,6 @@
-use alloc::boxed::Box;
 use core::{fmt, str::FromStr};
 
-use hmac::{Hmac, Mac};
-use sha1::Sha1;
-use sha2::{Sha256, Sha512};
-
-use crate::error::Error;
+use crate::Error;
 
 /// HMAC algorithm used for OTP code generation.
 ///
@@ -60,26 +55,6 @@ impl Algorithm {
             Self::Steam => "STEAM",
         }
     }
-
-    /// Computes HMAC using this algorithm's hash function.
-    ///
-    /// Returns the raw digest bytes as a heap-allocated slice.
-    pub(crate) fn compute_hmac(self, key: &[u8], message: &[u8]) -> Box<[u8]> {
-        fn run<H>(mut mac: H, message: &[u8]) -> Box<[u8]>
-        where
-            H: Mac,
-        {
-            mac.update(message);
-            mac.finalize().into_bytes().to_vec().into_boxed_slice()
-        }
-        match self {
-            Self::Sha1 => run(Hmac::<Sha1>::new_from_slice(key).unwrap(), message),
-            #[cfg(feature = "steam")]
-            Self::Steam => run(Hmac::<Sha1>::new_from_slice(key).unwrap(), message),
-            Self::Sha256 => run(Hmac::<Sha256>::new_from_slice(key).unwrap(), message),
-            Self::Sha512 => run(Hmac::<Sha512>::new_from_slice(key).unwrap(), message),
-        }
-    }
 }
 
 impl fmt::Display for Algorithm {
@@ -87,6 +62,18 @@ impl fmt::Display for Algorithm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())
     }
+}
+
+/// Case-insensitive comparison, ignoring `-` and `_` in the input.
+fn eq_normalized(input: &str, expected: &str) -> bool {
+    let input_iter = input
+        .bytes()
+        .filter(|&b| !matches!(b, b'-' | b'_'))
+        .map(|b| b.to_ascii_lowercase());
+
+    let expected_iter = expected.bytes();
+
+    input_iter.eq(expected_iter)
 }
 
 impl FromStr for Algorithm {
@@ -112,21 +99,22 @@ impl FromStr for Algorithm {
     /// assert_eq!("sha512".parse::<Algorithm>().unwrap(), Algorithm::Sha512);
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        macro_rules! match_ignore_ascii_case {
-            ($s:expr, $pat:literal => $variant:expr) => {
-                if $s.eq_ignore_ascii_case($pat) {
+        macro_rules! matches_algo {
+            ($expected:literal => $variant:expr) => {
+                if eq_normalized(s, $expected) {
                     return Ok($variant);
                 }
             };
         }
 
-        match_ignore_ascii_case!(s, "SHA1" => Self::Sha1);
-        match_ignore_ascii_case!(s, "SHA256" => Self::Sha256);
-        match_ignore_ascii_case!(s, "SHA512" => Self::Sha512);
+        matches_algo!("sha1"   => Self::Sha1);
+        matches_algo!("sha256" => Self::Sha256);
+        matches_algo!("sha512" => Self::Sha512);
         #[cfg(feature = "steam")]
-        match_ignore_ascii_case!(s, "STEAM" => Self::Steam);
+        matches_algo!("steam"  => Self::Steam);
 
-        Err(Error::AlgorithmError(s.into()))
+        // Algorithm name is invalid, without additional description
+        Err(Error::InvalidAlgorithm)
     }
 }
 
