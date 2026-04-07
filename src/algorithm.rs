@@ -20,6 +20,7 @@ use crate::Error;
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "UPPERCASE"))]
 pub enum Algorithm {
     /// HMAC-SHA-1 (RFC 4226 §5). Default algorithm.
     #[default]
