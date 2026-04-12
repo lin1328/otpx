@@ -120,20 +120,21 @@ pub(crate) fn steam_encode(value: u32) -> String {
     String::from(unsafe { core::str::from_utf8_unchecked(&buf) })
 }
 
-/// Validates that the shared secret meets the RFC 4226 §4 R6 recommended minimum.
+/// Validates that the shared secret meets the minimum length for compatibility.
 ///
-/// Requires at least **128 bits (16 bytes)** as recommended by RFC 4226 §4 R6.
+/// Requires at least **80 bits (10 bytes)**. RFC 4226 §4 R6 recommends 128 bits (16 bytes),
+/// but 10 bytes is the practical minimum for broad TOTP/HOTP interoperability.
 ///
 /// # Errors
 ///
 /// - [`Error::EmptyField`] if `len == 0`.
-/// - [`Error::KeyTooShort`] if `0 < len < 16`; carries the actual bit count.
+/// - [`Error::KeyTooShort`] if `0 < len < 10`; carries the actual bit count.
 #[inline]
 pub(crate) fn check_secret_len(len: usize) -> Result<()> {
     if len == 0 {
         return Err(Error::EmptyField("secret"));
     }
-    if len < 16 {
+    if len < 10 {
         return Err(Error::KeyTooShort(len * 8));
     }
     Ok(())

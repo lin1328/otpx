@@ -122,7 +122,7 @@ impl TotpBuilder<WithSecret> {
     /// - [`Error::InvalidDigits`](crate::Error::InvalidDigits) — digits not in `6..=8`
     /// - [`Error::InvalidTimeStep`](crate::Error::InvalidTimeStep) — period below 15 s
     /// - [`Error::EmptyField`](crate::Error::EmptyField) — secret is empty
-    /// - [`Error::KeyTooShort`](crate::Error::KeyTooShort) — secret shorter than 128 bits (16 bytes)
+    /// - [`Error::KeyTooShort`](crate::Error::KeyTooShort) — secret shorter than 80 bits (10 bytes)
     ///
     /// # Panics
     ///

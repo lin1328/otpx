@@ -2,7 +2,7 @@ use core::fmt;
 #[cfg(feature = "std")]
 use std::time::SystemTimeError;
 
-/// Error type
+/// Errors type
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
@@ -18,7 +18,9 @@ pub enum Error {
     /// Secret key is too short for secure TOTP generation
     KeyTooShort(usize),
 
+    /// OTP digit count is outside the valid range (`6..=8`)
     InvalidDigits(u8),
+    /// Time step is below the minimum (15 seconds)
     InvalidTimeStep(u8),
     /// Unknown algorithm name
     InvalidAlgorithm,
@@ -33,7 +35,7 @@ impl fmt::Display for Error {
             Self::DecodeError(pos) => write!(f, "Base32 decode failed at position {pos}"),
             Self::KeyTooShort(bits) => write!(
                 f,
-                "Secret key too short: {bits} bits (minimum 128 bits / 16 bytes)"
+                "Secret key too short: {bits} bits (minimum 80 bits / 10 bytes)"
             ),
             Self::InvalidDigits(digits) => {
                 write!(f, "invalid OTP digits: {digits} (expected 6..=8)")

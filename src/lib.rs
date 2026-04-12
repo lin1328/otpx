@@ -1,9 +1,10 @@
 #![no_std]
 //! RFC 4226 (HOTP) and RFC 6238 (TOTP) one-time password implementation.
 //!
-//! `otpx` provides [`Totp`] and `Hotp` types with support for multiple
-//! HMAC algorithms, configurable digit counts, and optional Steam Guard
-//! encoding. The crate supports `no_std` with `alloc`.
+//! `otpx` provides a [`Totp`] type with support for multiple HMAC algorithms,
+//! configurable digit counts, and optional Steam Guard encoding.
+//! [`Totp::generate_counter`] also serves as a low-level HOTP primitive.
+//! The crate supports `no_std` with `alloc`.
 //!
 //! ## Feature highlights
 //!
@@ -13,14 +14,14 @@
 //!
 //! ## Quick start
 //!
-//! [`Totp::new`] accepts pre-decoded `&[u8]`; use [`SecretKey::from_base32`] to decode
-//! a Base32 secret first.
+//! [`Totp::new`] accepts a [`SecretKey`]; use [`SecretKey::from_base32`] to decode
+//! a Base32 secret first. Raw bytes can be converted via [`SecretKey::try_from`].
 //!
 //! ```
 //! use otpx::{Totp, SecretKey};
 //!
 //! let key = SecretKey::from_base32("JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP").unwrap();
-//! let totp = Totp::new(key.as_bytes());
+//! let totp = Totp::new(key);
 //! // 57_856_320 is a pre-computed time counter T = floor(Unix time / 30)
 //! let code = totp.generate_counter(57_856_320);
 //! assert_eq!(code, "311152");

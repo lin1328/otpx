@@ -8,6 +8,7 @@ use crate::util::{compute_hmac, format_otp, truncate_rfc4226};
 use crate::{Algorithm, Result, SecretKey};
 use crate::{DEFAULT_DIGITS, DEFAULT_STEP, MAX_DIGEST_LEN};
 
+#[path = "builder.rs"]
 mod builder;
 use builder::TotpBuilder;
 pub use builder::{NoSecret, WithSecret};
@@ -46,8 +47,8 @@ pub use builder::{NoSecret, WithSecret};
 ///
 /// # Key requirements
 ///
-/// [`Totp::new`] validates key length: the secret must be at least 80 bits (10 bytes)
-/// per RFC 4226 §4; 128 bits (16 bytes) or more is recommended.
+/// Key length is validated during [`SecretKey`] construction or [`TotpBuilder::build`]:
+/// the secret must be at least 80 bits (10 bytes); 128 bits (16 bytes) or more is recommended.
 #[derive(Debug)]
 pub struct Totp {
     /// Shared secret key (RFC 4226 §4 / RFC 6238 §4).
@@ -159,9 +160,10 @@ impl Totp {
     /// Returns the remaining validity period of the current code in seconds.
     ///
     /// ```
-    /// use otpx::Totp;
+    /// use otpx::{Totp, SecretKey};
     ///
-    /// let totp = Totp::new(b"12345678901234567890");
+    /// let key = SecretKey::from_slice(b"12345678901234567890");
+    /// let totp = Totp::new(key);
     /// let remaining = totp.ttl().unwrap();
     /// assert!(remaining <= 30);
     /// ```

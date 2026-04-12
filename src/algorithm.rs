@@ -114,7 +114,6 @@ impl FromStr for Algorithm {
         #[cfg(feature = "steam")]
         matches_algo!("steam"  => Self::Steam);
 
-        // Algorithm name is invalid, without additional description
         Err(Error::InvalidAlgorithm)
     }
 }

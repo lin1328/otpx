@@ -21,8 +21,8 @@ use crate::{Error, Result, util};
 ///
 /// # Key length
 ///
-/// [`SecretKey::from_base32`] requires a minimum of **128 bits (16 bytes)** per
-/// RFC 4226 §4 R6 recommendation.
+/// [`SecretKey::from_base32`] requires a minimum of **80 bits (10 bytes)** for
+/// broad TOTP/HOTP interoperability. RFC 4226 §4 R6 recommends 128 bits (16 bytes).
 ///
 /// [`SecretKey::from_slice`] skips length validation — the caller is
 /// responsible for ensuring the key meets the desired security level.
@@ -47,7 +47,7 @@ impl SecretKey {
     /// Returns an error if:
     /// - The input is empty
     /// - The input contains invalid Base32 characters
-    /// - The decoded key is shorter than 128 bits (16 bytes) per RFC 4226 §4 R6
+    /// - The decoded key is shorter than 80 bits (10 bytes)
     ///
     /// # Examples
     ///
@@ -69,14 +69,12 @@ impl SecretKey {
             .decode(input.as_bytes())
             .map_err(|e| Error::DecodeError(e.position))?;
 
-        // Cannot use `?` here: when the `zeroize` feature is enabled we must
-        // explicitly zero `decoded` before returning, which `?` would skip.
-        #[allow(clippy::question_mark)]
-        if let Err(e) = util::check_secret_len(decoded.len()) {
+        // Cannot use bare `?` here: when the `zeroize` feature is enabled we must
+        // explicitly zero `decoded` before returning the error.
+        util::check_secret_len(decoded.len()).inspect_err(|_| {
             #[cfg(feature = "zeroize")]
             decoded.zeroize();
-            return Err(e);
-        }
+        })?;
 
         Ok(Self(decoded.into_boxed_slice()))
     }
@@ -160,7 +158,7 @@ impl SecretKey {
 impl fmt::Debug for SecretKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("SecretKey")
-            .field("len", &self.0.len())
+            .field("len", &self.len())
             .finish_non_exhaustive()
     }
 }
